@@ -8,6 +8,8 @@ import img4 from "./4.jpg";
 import img5 from "./5.jpg";
 import img6 from "./6.jpg";
 
+import { randomWord } from './words'
+
 class Hangman extends Component {
   /** by default, allow 6 guesses and use provided gallows images. */
   static defaultProps = {
@@ -17,7 +19,7 @@ class Hangman extends Component {
 
   constructor(props) {
     super(props);
-    this.state = { nWrong: 0, guessed: new Set(), answer: "apple" };
+    this.state = { nWrong: 0, guessed: new Set(), answer: 'apple' };
     this.handleGuess = this.handleGuess.bind(this);
   }
 
@@ -42,10 +44,15 @@ class Hangman extends Component {
     }));
   }
 
+  restart = () => {
+    this.setState({ nWrong: 0, guessed: new Set(), answer: randomWord(), win: false })
+  }
+
   /** generateButtons: return array of letter buttons to render */
   generateButtons() {
     return "abcdefghijklmnopqrstuvwxyz".split("").map(ltr => (
       <button
+        key={ltr}
         value={ltr}
         onClick={this.handleGuess}
         disabled={this.state.guessed.has(ltr)}
@@ -57,12 +64,28 @@ class Hangman extends Component {
 
   /** render: render game */
   render() {
+    const isWinner = this.guessedWord().join("") === this.state.answer
+    const isLoser = this.state.nWrong === this.props.maxWrong
+
     return (
       <div className='Hangman'>
         <h1>Hangman</h1>
-        <img src={this.props.images[this.state.nWrong]} />
-        <p className='Hangman-word'>{this.guessedWord()}</p>
-        <p className='Hangman-btns'>{this.generateButtons()}</p>
+        <img src={this.props.images[this.state.nWrong]} alt={`hangman-${this.state.nWrong}/${this.state.maxWrong}`} />
+        <p>Wrong guesses: {this.state.nWrong}</p>
+
+        {isLoser ?
+          <div>
+            <p className='Hangman-word' style={{color: 'red'}}>{this.state.answer}</p>
+            <h2>YOU LOSE!</h2>
+            <button className="restart"onClick={this.restart}>Restart</button>
+          </div>
+          :
+          <div>
+            <p className='Hangman-word'>{this.guessedWord()}</p>
+            {isWinner && <h2>YOU WIN!</h2>}
+            {isWinner ? <button className="restart"onClick={this.restart}>Restart</button> : <p className='Hangman-btns'>{this.generateButtons()}</p>}
+          </div>}
+
       </div>
     );
   }
